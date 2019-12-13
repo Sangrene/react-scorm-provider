@@ -50,10 +50,10 @@
     "webpack-cli": "^3.3.1",
     "webpack-dev-server": "^3.3.1"
   },
-  "author": "Jay Karlsven <j.karlsven@gmail.com>",
-  "homepage": "https://github.com/JayV30/react-scorm-provider",
+  "author": "Jay Karlsven <j.karlsven@gmail.com> && Hugo LAPLACE-BUILHE <hugo.laplacebuilhe@gmail.com>",
+  "homepage": "https://github.com/Sangrene/react-scorm-provider",
   "repository": {
     "type": "git",
-    "url": "git@github.com:JayV30/react-scorm-provider.git"
+    "url": "git@github.com:Sangrene/react-scorm-provider.git"
   }
 }

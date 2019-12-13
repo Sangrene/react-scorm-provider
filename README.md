@@ -8,6 +8,7 @@ Keep in mind that this project does not include any kind of packaging or bundlin
 
 There are two major components of RSP, `ScormProvider` and `withScorm`.
 
+
 [View the live demo](https://jayv30.github.io/react-scorm-provider)
 
 ---
@@ -60,6 +61,9 @@ The 'sco' prop object contains the following properties:
 {
   // status of the connection to the SCORM API
   apiConnected: Bool,
+
+  // is current module connected with a LMS or is it using localStorage
+  isInLMSContext: Bool,
 
   // cmi.core.student_name (SCORM 1.2) || cmi.learner_name (SCORM 2004)
   learnerName: String,
