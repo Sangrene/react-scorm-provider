@@ -1,0 +1,89 @@
+Arguments: 
+  /usr/local/bin/node /usr/local/Cellar/yarn/1.7.0/libexec/bin/yarn.js
+
+PATH: 
+  /usr/local/bin:/usr/bin:/bin:/usr/sbin:/sbin:/usr/local/opt/rabbitmq/sbin
+
+Yarn version: 
+  1.7.0
+
+Node version: 
+  10.14.2
+
+Platform: 
+  darwin x64
+
+Trace: 
+  SyntaxError: /Users/hugo/Documents/UpAndGo/react-scorm-provider/package.json: Unexpected token } in JSON at position 726
+      at JSON.parse (<anonymous>)
+      at /usr/local/Cellar/yarn/1.7.0/libexec/lib/cli.js:1130:59
+      at Generator.next (<anonymous>)
+      at step (/usr/local/Cellar/yarn/1.7.0/libexec/lib/cli.js:98:30)
+      at /usr/local/Cellar/yarn/1.7.0/libexec/lib/cli.js:109:13
+
+npm manifest: 
+  {
+    "name": "react-scorm-provider",
+    "version": "0.1.4",
+    "description": "Components to easily enable SCORM API communication in React projects.",
+    "main": "lib/index.js",
+    "scripts": {
+      "dev": "concurrently \"npm run lib:watch\" \"npm run docs\"",
+      "lib": "babel src/lib -d lib --copy-files",
+      "lib:watch": "babel src/lib -w -d lib --copy-files",
+      "docs": "webpack-dev-server --mode development",
+      "docs:prod": "webpack --mode production"
+    },
+    "keywords": [
+      "react",
+      "scorm",
+      "scorm1.2",
+      "scorm2004",
+      "lms",
+      "sco",
+      "elearning",
+      "e-learning",
+      "wrapper",
+      "api"
+    ],
+    "license": "MIT",
+    "peerDependencies": {
+      "react": "^16.12.0",
+      "react-dom": "^16.12.0",
+    },
+    "dependencies": {
+      "pipwerks-scorm-api-wrapper": "^0.1.2",
+      "prop-types": "^15.7.2"
+    },
+    "devDependencies": {
+      "@babel/cli": "^7.4.4",
+      "@babel/core": "^7.4.4",
+      "@babel/plugin-proposal-class-properties": "^7.4.4",
+      "@babel/plugin-proposal-object-rest-spread": "^7.4.4",
+      "@babel/preset-env": "^7.4.4",
+      "@babel/preset-react": "^7.0.0",
+      "babel-loader": "^8.0.5",
+      "concurrently": "^4.1.0",
+      "css-loader": "^2.1.1",
+      "file-loader": "^3.0.1",
+      "html-webpack-plugin": "^3.2.0",
+      "react": "^16.12.0",
+      "react-dom": "^16.12.0",
+      "style-loader": "^0.23.1",
+      "webpack": "^4.30.0",
+      "webpack-cli": "^3.3.1",
+      "webpack-dev-server": "^3.3.1"
+    },
+    "author": "Jay Karlsven <j.karlsven@gmail.com>",
+    "homepage": "https://github.com/JayV30/react-scorm-provider",
+    "repository": {
+      "type": "git",
+      "url": "git@github.com:JayV30/react-scorm-provider.git"
+    }
+  }
+
+yarn manifest: 
+  No manifest
+
+Lockfile: 
+  No lockfile

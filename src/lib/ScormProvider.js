@@ -8,11 +8,11 @@ export const ScoContext = React.createContext({
   completionStatus: 'incomplete',
   suspendData: {},
   scormVersion: '',
-  getSuspendData: () => {},
-  setSuspendData: () => {},
-  setStatus: () => {},
-  set: () => {},
-  get: () => {}
+  getSuspendData: () => { },
+  setSuspendData: () => { },
+  setStatus: () => { },
+  set: () => { },
+  get: () => { }
 });
 
 class ScormProvider extends Component {
@@ -33,6 +33,7 @@ class ScormProvider extends Component {
     // define state, including methods to be passed to context consumers
     // this entire state will be passed as 'sco' to consumers
     this.state = {
+      isInLMSContext: false,
       apiConnected: false,
       learnerName: '',
       completionStatus: 'incomplete',
@@ -70,6 +71,7 @@ class ScormProvider extends Component {
       const learnerName = version === '1.2' ? SCORM.get('cmi.core.student_name') : SCORM.get('cmi.learner_name');
       const completionStatus = SCORM.status('get');
       this.setState({
+        isInLMSContext: true,
         apiConnected: true,
         learnerName: learnerName,
         completionStatus: completionStatus,
@@ -78,59 +80,96 @@ class ScormProvider extends Component {
         this.getSuspendData();
       });
     } else {
+      this.setState({
+        isInLMSContext: false,
+        apiConnected: true,
+        learnerName: localStorage.getItem("learnerName"),
+        completionStatus: localStorage.getItem("completionStatus")
+      }, () => this.getSuspendData());
       // could not create the SCORM API connection
-      console.log("ScormProvider init error: could not create the SCORM API connection");
+      console.log("ScormProvider is not in a LMS : it will be using local storage");
+
     }
   }
 
   closeScormAPIConnection() {
     console.log('ScormProvider closeScormAPIConnection method called!');
     if (!this.state.apiConnected) return;
-
-    this.setSuspendData();
-    SCORM.status('set', this.state.completionStatus);
-    SCORM.save();
-    const success = SCORM.quit();
-    if (success) {
+    if (this.state.isInLMSContext) {
+      this.setSuspendData();
+      SCORM.status('set', this.state.completionStatus);
+      SCORM.save();
+      const success = SCORM.quit();
+      if (success) {
+        this.setState({
+          apiConnected: false,
+          learnerName: '',
+          completionStatus: 'incomplete',
+          suspendData: {},
+          scormVersion: ''
+        });
+      } else {
+        // could not close the SCORM API connection
+        console.log("ScormProvider error: could not close the API connection");
+      }
+    } else {
+      this.setSuspendData();
+      localStorage.setItem("completionStatus", this.state.completionStatus);
       this.setState({
+        isInLMSContext: false,
         apiConnected: false,
-        learnerName: '',
-        completionStatus: 'incomplete',
+        learnerName: "",
+        completionStatus: "incomplete",
         suspendData: {},
         scormVersion: ''
-      });
-    } else {
-      // could not close the SCORM API connection
-      console.log("ScormProvider error: could not close the API connection");
+
+      })
     }
+
   }
 
   getSuspendData() {
     if (!this.state.apiConnected) return;
+    if (this.state.isInLMSContext) {
+      const data = SCORM.get('cmi.suspend_data');
+      const suspendData = data && data.length > 0 ? JSON.parse(data) : {};
+      this.setState({
+        suspendData
+      });
+    } else {
+      this.setState({
+        suspendData: JSON.parse(localStorage.getItem("suspendData"))
+      })
+    }
 
-    const data = SCORM.get('cmi.suspend_data');
-    const suspendData = data && data.length > 0 ? JSON.parse(data) : {};
-    this.setState({
-      suspendData
-    });
+
   }
 
   setSuspendData(key, val) {
     if (!this.state.apiConnected) return;
-
-    let currentData = {...this.state.suspendData} || {};
-    if (key && val) currentData[key] = val;
-    let success = SCORM.set('cmi.suspend_data', JSON.stringify(currentData));
-    if (success) {
+    if (this.state.isInLMSContext) {
+      let currentData = { ...this.state.suspendData } || {};
+      if (key && val) currentData[key] = val;
+      let success = SCORM.set('cmi.suspend_data', JSON.stringify(currentData));
+      if (success) {
+        this.setState({
+          suspendData: currentData
+        }, () => {
+          SCORM.save();
+        });
+      } else {
+        // error setting suspend data
+        console.log("ScormProvider setStatus error: could not set the suspend data provided");
+      }
+    } else {
+      const currentData = { ... this.state.suspendData } || {};
+      if (key && val) currentData[key] = val;
+      localStorage.setItem("suspendData", JSON.stringify(currentData));
       this.setState({
         suspendData: currentData
-      }, () => {
-        SCORM.save();
-      });
-    } else {
-      // error setting suspend data
-      console.log("ScormProvider setStatus error: could not set the suspend data provided");
+      })
     }
+
   }
 
   setStatus(status) {
@@ -138,35 +177,50 @@ class ScormProvider extends Component {
 
     const validStatuses = ["passed", "completed", "failed", "incomplete", "browsed", "not attempted"];
     if (validStatuses.includes(status)) {
-      let success = SCORM.status("set", status);
-      if (success) {
+      if (this.state.isInLMSContext) {
+        let success = SCORM.status("set", status);
+        if (success) {
+          this.setState({
+            completionStatus: status
+          }, () => {
+            SCORM.save();
+          });
+        }
+      } else {
+        localStorage.setItem("completionStatus", status);
         this.setState({
           completionStatus: status
-        }, () => {
-          SCORM.save();
         });
-      } else {
-        // error setting status
-        console.log("ScormProvider setStatus error: could not set the status provided");
       }
+    } else {
+      // error setting status
+      console.log("ScormProvider setStatus error: could not set the status provided");
     }
   }
 
   set(param, val) {
     if (!this.state.apiConnected) return;
-
-    let success = SCORM.set(param, val);
-    if (success) {
-      SCORM.save();
+    if (this.state.isInLMSContext) {
+      let success = SCORM.set(param, val);
+      if (success) {
+        SCORM.save();
+      } else {
+        // error setting value
+        console.log("ScormProvider set error: could not set:", param, val);
+      }
     } else {
-      // error setting value
-      console.log("ScormProvider set error: could not set:", param, val);
+      localStorage.setItem(param, val);
     }
+
   }
 
   get(param) {
     if (!this.state.apiConnected) return;
-    return SCORM.get(param);
+    if (this.state.isInLMSContext) {
+      return SCORM.get(param);
+    } else {
+      return localStorage.getItem(param);
+    }
   }
 
   render() {
