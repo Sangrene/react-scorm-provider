@@ -1,5 +1,5 @@
 # React SCORM Provider
-
+[![npm version](https://badge.fury.io/js/%40upandgo%2Freact-scorm-provider.svg)](https://badge.fury.io/js/%40upandgo%2Freact-scorm-provider)
 ### Overview
 
 React-scorm-provider (RSP) is a set of React Components that simplify the inclusion of the [SCORM API](https://scorm.com/scorm-explained/) into your React projects. It utilizes the great SCORM API wrapper from [pipwerks](https://github.com/pipwerks/scorm-api-wrapper). Use RSP to easily add SCORM capabilities to your learning modules, resources, games, or *any* web content you are creating with React.
