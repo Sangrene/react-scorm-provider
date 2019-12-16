@@ -85,7 +85,7 @@ class ScormProvider extends Component {
         completionStatus: completionStatus,
         scormVersion: version
       }, () => {
-        this.initScoreRange()
+        this.initScoreRange();
         this.getSuspendData();
       });
     } else {
@@ -95,8 +95,8 @@ class ScormProvider extends Component {
         learnerName: localStorage.getItem("learnerName"),
         completionStatus: localStorage.getItem("completionStatus")
       }, () => {
-        this.initScoreRange()
-        this.getSuspendData()
+        this.initScoreRange();
+        this.getSuspendData();
       });
       // could not create the SCORM API connection
       console.log("ScormProvider is not in a LMS : it will be using local storage");
@@ -142,7 +142,7 @@ class ScormProvider extends Component {
         suspendData: {},
         scormVersion: ''
 
-      })
+      });
     }
   }
 
