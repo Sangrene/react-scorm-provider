@@ -1,8 +1,10 @@
 import React, { Component } from 'react';
 import { SCORM, debug } from 'pipwerks-scorm-api-wrapper';
 import PropTypes from 'prop-types';
+import moment from "moment";
 
 export const ScoContext = React.createContext({
+  isInLMSContext: false,
   apiConnected: false,
   learnerName: '',
   completionStatus: 'incomplete',
@@ -12,7 +14,8 @@ export const ScoContext = React.createContext({
   setSuspendData: () => { },
   setStatus: () => { },
   set: () => { },
-  get: () => { }
+  get: () => { },
+  setScore: () => { }
 });
 
 class ScormProvider extends Component {
@@ -43,7 +46,8 @@ class ScormProvider extends Component {
       setSuspendData: this.setSuspendData,
       setStatus: this.setStatus,
       set: this.set,
-      get: this.get
+      get: this.get,
+      startTime: null
     };
   }
 
@@ -66,10 +70,14 @@ class ScormProvider extends Component {
     if (this.props.version) SCORM.version = this.props.version;
     if (typeof this.props.debug === "boolean") debug.isActive = this.props.debug;
     const scorm = SCORM.init();
+    this.setState({
+      startTime: new Date()
+    });
     if (scorm) {
       const version = SCORM.version;
       const learnerName = version === '1.2' ? SCORM.get('cmi.core.student_name') : SCORM.get('cmi.learner_name');
       const completionStatus = SCORM.status('get');
+
       this.setState({
         isInLMSContext: true,
         apiConnected: true,
@@ -77,6 +85,7 @@ class ScormProvider extends Component {
         completionStatus: completionStatus,
         scormVersion: version
       }, () => {
+        this.initScoreRange()
         this.getSuspendData();
       });
     } else {
@@ -85,7 +94,10 @@ class ScormProvider extends Component {
         apiConnected: true,
         learnerName: localStorage.getItem("learnerName"),
         completionStatus: localStorage.getItem("completionStatus")
-      }, () => this.getSuspendData());
+      }, () => {
+        this.initScoreRange()
+        this.getSuspendData()
+      });
       // could not create the SCORM API connection
       console.log("ScormProvider is not in a LMS : it will be using local storage");
 
@@ -95,10 +107,16 @@ class ScormProvider extends Component {
   closeScormAPIConnection() {
     console.log('ScormProvider closeScormAPIConnection method called!');
     if (!this.state.apiConnected) return;
+    const duration = moment(new Date().getTime() - this.state.startTime.getTime());
     if (this.state.isInLMSContext) {
       this.setSuspendData();
       SCORM.status('set', this.state.completionStatus);
       SCORM.save();
+      if (this.state.version === "1.2") {
+        this.set("cmi.core.session_time", duration.format(`${Math.floor(duration / 3600000)}:MM:SS.SS`));
+      } else {
+        this.set("cmi.session_time", Math.floor(duration / 1000));
+      }
       const success = SCORM.quit();
       if (success) {
         this.setState({
@@ -115,6 +133,7 @@ class ScormProvider extends Component {
     } else {
       this.setSuspendData();
       localStorage.setItem("completionStatus", this.state.completionStatus);
+      localStorage.setItem("sessionTime", duration);
       this.setState({
         isInLMSContext: false,
         apiConnected: false,
@@ -125,8 +144,24 @@ class ScormProvider extends Component {
 
       })
     }
-
   }
+
+  initScoreRange = () => {
+    if (!this.state.apiConnected) return;
+    if (this.state.isInLMSContext) {
+      if (this.state.version === "1.2") {
+        this.set("cmi.core.score.min", 0);
+        this.set("cmi.core.score.max", 100);
+      } else {
+        this.set("cmi.score.min", 0);
+        this.set("cmi.score.max", 100);
+      }
+    } else {
+      localStorage.setItem("score.min", 0);
+      localStorage.setItem("score.max", 100);
+    }
+  }
+
 
   getSuspendData() {
     if (!this.state.apiConnected) return;
@@ -148,9 +183,9 @@ class ScormProvider extends Component {
   setSuspendData(key, val) {
     if (!this.state.apiConnected) return;
     if (this.state.isInLMSContext) {
-      let currentData = { ...this.state.suspendData } || {};
+      const currentData = { ...this.state.suspendData } || {};
       if (key && val) currentData[key] = val;
-      let success = SCORM.set('cmi.suspend_data', JSON.stringify(currentData));
+      const success = SCORM.set('cmi.suspend_data', JSON.stringify(currentData));
       if (success) {
         this.setState({
           suspendData: currentData
@@ -169,7 +204,6 @@ class ScormProvider extends Component {
         suspendData: currentData
       })
     }
-
   }
 
   setStatus(status) {
@@ -178,7 +212,7 @@ class ScormProvider extends Component {
     const validStatuses = ["passed", "completed", "failed", "incomplete", "browsed", "not attempted"];
     if (validStatuses.includes(status)) {
       if (this.state.isInLMSContext) {
-        let success = SCORM.status("set", status);
+        const success = SCORM.status("set", status);
         if (success) {
           this.setState({
             completionStatus: status
@@ -195,6 +229,19 @@ class ScormProvider extends Component {
     } else {
       // error setting status
       console.log("ScormProvider setStatus error: could not set the status provided");
+    }
+  }
+
+  setScore = (score) => {
+    if (!this.state.apiConnected) return;
+    if (this.state.isInLMSContext) {
+      if (this.state.version === "1.2") {
+        this.set("cmi.core.score.raw", score);
+      } else {
+        this.set("cmi.score.raw", score);
+      }
+    } else {
+      localStorage.setItem("score.raw", score);
     }
   }
 

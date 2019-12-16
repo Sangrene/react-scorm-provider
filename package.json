@@ -1,6 +1,6 @@
 {
   "name": "@upandgo/react-scorm-provider",
-  "version": "0.1.7",
+  "version": "0.1.8",
   "description": "Components to easily enable SCORM API communication in React projects.",
   "main": "lib/index.js",
   "scripts": {
@@ -28,6 +28,7 @@
     "react-dom": "^16.12.0"
   },
   "dependencies": {
+    "moment": "^2.24.0",
     "pipwerks-scorm-api-wrapper": "^0.1.2",
     "prop-types": "^15.7.2"
   },
